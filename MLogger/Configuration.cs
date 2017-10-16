@@ -6,14 +6,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MLogger.Engine
+namespace MLogger
 {
-    public sealed class Configuration : ConfigurationSection
+    public class Configuration : ConfigurationSection
     {
         public Configuration()
         {
             LogFilePath = LogFilePath;
-            EncodingName = EncodingName;
+            LogFileEncodingName = LogFileEncodingName;
+            LogLevelMarkers = Enum.GetValues(typeof(LogLevel)).Cast<byte>().OrderBy(value => value)
+                .Select(value => new string(Enumerable.Repeat((char)255, value + 1).ToArray())).ToList().AsReadOnly();
         }
 
         static Configuration()
@@ -26,16 +28,15 @@ namespace MLogger.Engine
 
         /// <summary>
         /// Log file full path. 
-        /// Available macros "$(TargetDir)" - replaced with current executing location. 
+        /// Available placeholders: "$(TargetDir)" - replaced with current executing location. 
         /// Default: "$(TargetDir)mlog.log".
         /// </summary>
         [ConfigurationProperty("logFilePath", DefaultValue = "$(TargetDir)mlog.log", IsRequired = true)]
         public string LogFilePath
         {
             get { return (string)base["logFilePath"]; }
-            set { base["logFilePath"] = value.Replace("$(TargetDir)", Directory.GetCurrentDirectory() + "\\"); }
+            protected set { base["logFilePath"] = value.Replace("$(TargetDir)", Directory.GetCurrentDirectory() + "\\"); }
         }
-
 
         /// <summary>
         /// Log file max size in bytes limitation. 
@@ -47,7 +48,7 @@ namespace MLogger.Engine
         public long? LogFileMaxBytes
         {
             get { return (long?)base["logFileMaxBytes"]; }
-            set { base["logFileMaxBytes"] = value; }
+            protected set { base["logFileMaxBytes"] = value; }
         }
 
         /// <summary>
@@ -67,7 +68,24 @@ namespace MLogger.Engine
         public bool OrderEntriesByLogLevel
         {
             get { return (bool)base["orderEntriesByLogLevel"]; }
-            set { base["orderEntriesByLogLevel"] = value; }
+            protected set { base["orderEntriesByLogLevel"] = value; }
+        }
+
+        /// <summary>
+        /// Log message format. 
+        /// Available placeholders: 
+        /// "$(LogLevel)" - replaced with message level, 
+        /// "$(Message)" - replaced with message body, 
+        /// "$(AdditionalInfo)" - replaced with additional information, 
+        /// "$(NewLine)" - replaced with new line, 
+        /// DateTime format string - replaced with server current date-time. 
+        /// Default: "[dd/MM/yyyy HH:mm:ss.fff|$(LogLevel)] $(Message) $(AdditionalInfo)".
+        /// </summary>
+        [ConfigurationProperty("logEntryFormat", DefaultValue = "[dd/MM/yyyy HH:mm:ss.fff|$(LogLevel)] $(Message) $(AdditionalInfo)", IsRequired = true)]
+        public string LogEntryFormat
+        {
+            get { return (string)base["logEntryFormat"]; }
+            protected set { base["logEntryFormat"] = value; }
         }
 
 
@@ -79,7 +97,7 @@ namespace MLogger.Engine
         public LogLevel LogLevel
         {
             get { return (LogLevel)base["logLevel"]; }
-            set { base["logLevel"] = value; }
+            protected set { base["logLevel"] = value; }
         }
 
         /// <summary>
@@ -92,18 +110,29 @@ namespace MLogger.Engine
             return this.LogLevel >= logLevel;
         }
 
+        
+        private IReadOnlyList<string> LogLevelMarkers { get; set; }
         /// <summary>
-        /// Log encoding, for example "utf-32" or "en-US". 
+        /// Returns log level marker by provided log level. 
+        /// If OrderEntriesByLogLevel is true - should be added to message to specify its log level.
+        /// </summary>
+        public string GetLogLevelMarker(LogLevel logLevel)
+        {
+            return OrderEntriesByLogLevel ? LogLevelMarkers[((int)logLevel) + 1] : null;
+        }
+
+        /// <summary>
+        /// Log file encoding name, for example "UTF-32" or "en-US". 
         /// Default: "UTF-8".
         /// </summary>
-        [ConfigurationProperty("encodingName", DefaultValue = "UTF-8", IsRequired = false)]
-        public string EncodingName
+        [ConfigurationProperty("logFileEncodingName", DefaultValue = "UTF-8", IsRequired = false)]
+        public string LogFileEncodingName
         {
-            get { return (string)base["encodingName"]; }
-            set
+            get { return (string)base["logFileEncodingName"]; }
+            protected set
             {
-                base["encodingName"] = value;
-                LogEncoding = Encoding.GetEncoding(value, Encoding.UTF8.EncoderFallback, Encoding.UTF8.DecoderFallback);
+                base["logFileEncodingName"] = value;
+                LogFileEncoding = Encoding.GetEncoding(value, Encoding.UTF8.EncoderFallback, Encoding.UTF8.DecoderFallback);
             }
         }
 
@@ -111,7 +140,7 @@ namespace MLogger.Engine
         /// Log file encoding. 
         /// Default: UTF8.
         /// </summary>
-        public Encoding LogEncoding { get; set; }
-
+        public Encoding LogFileEncoding { get; protected set; }
+        
     }
 }

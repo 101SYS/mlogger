@@ -58,9 +58,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MLoggerEngine\MLoggerEngine.csproj">
-      <Project>{766ec67e-1241-4a2c-b3c9-bd3da4754063}</Project>
-      <Name>MLoggerEngine</Name>
+    <ProjectReference Include="..\MLogger\MLogger.csproj">
+      <Project>{b82e4c76-9a12-4d1b-abc2-37ac5ac2179d}</Project>
+      <Name>MLogger</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

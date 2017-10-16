@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MLoggerEngine", "MLoggerEngine\MLoggerEngine.csproj", "{766EC67E-1241-4A2C-B3C9-BD3DA4754063}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MLoggerTests", "MLoggerTests\MLoggerTests.csproj", "{480EF7C9-A3A9-4C75-9E03-4646CE172C45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MLogger", "MLogger\MLogger.csproj", "{B82E4C76-9A12-4D1B-ABC2-37AC5AC2179D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{766EC67E-1241-4A2C-B3C9-BD3DA4754063}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{766EC67E-1241-4A2C-B3C9-BD3DA4754063}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{766EC67E-1241-4A2C-B3C9-BD3DA4754063}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{766EC67E-1241-4A2C-B3C9-BD3DA4754063}.Release|Any CPU.Build.0 = Release|Any CPU
 		{480EF7C9-A3A9-4C75-9E03-4646CE172C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{480EF7C9-A3A9-4C75-9E03-4646CE172C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{480EF7C9-A3A9-4C75-9E03-4646CE172C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{480EF7C9-A3A9-4C75-9E03-4646CE172C45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B82E4C76-9A12-4D1B-ABC2-37AC5AC2179D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B82E4C76-9A12-4D1B-ABC2-37AC5AC2179D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B82E4C76-9A12-4D1B-ABC2-37AC5AC2179D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B82E4C76-9A12-4D1B-ABC2-37AC5AC2179D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
