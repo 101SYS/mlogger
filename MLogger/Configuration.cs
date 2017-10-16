@@ -111,7 +111,7 @@ namespace MLogger
             return this.LogLevel >= logLevel;
         }
 
-        public const char LogLevelMarkerSpecialCharacter = (char)255;
+        public const char LogLevelMarkerSpecialCharacter = (char)0;
         private IReadOnlyList<string> LogLevelMarkers { get; set; }
         /// <summary>
         /// Returns log level marker by provided log level. 
