@@ -15,7 +15,8 @@ namespace MLogger
             LogFilePath = LogFilePath;
             LogFileEncodingName = LogFileEncodingName;
             LogLevelMarkers = Enum.GetValues(typeof(LogLevel)).Cast<byte>().OrderBy(value => value)
-                .Select(value => new string(Enumerable.Repeat((char)255, value + 1).ToArray())).ToList().AsReadOnly();
+                .Select(value => new string(Enumerable.Repeat(LogLevelMarkerSpecialCharacter, value + 1).ToArray()))
+                .ToList().AsReadOnly();
         }
 
         static Configuration()
@@ -64,7 +65,7 @@ namespace MLogger
         /// Defines, if log entries should be sorted (grouped) by log level (severity) or not. 
         /// Default: false.
         /// </summary>
-        [ConfigurationProperty("orderEntriesByLogLevel", DefaultValue = false, IsRequired = false)]
+        [ConfigurationProperty("orderEntriesByLogLevel", DefaultValue = true, IsRequired = false)]
         public bool OrderEntriesByLogLevel
         {
             get { return (bool)base["orderEntriesByLogLevel"]; }
@@ -110,7 +111,7 @@ namespace MLogger
             return this.LogLevel >= logLevel;
         }
 
-        
+        public const char LogLevelMarkerSpecialCharacter = (char)255;
         private IReadOnlyList<string> LogLevelMarkers { get; set; }
         /// <summary>
         /// Returns log level marker by provided log level. 
@@ -118,7 +119,21 @@ namespace MLogger
         /// </summary>
         public string GetLogLevelMarker(LogLevel logLevel)
         {
-            return OrderEntriesByLogLevel ? LogLevelMarkers[((int)logLevel) + 1] : null;
+            return OrderEntriesByLogLevel ? LogLevelMarkers[((int)logLevel)] : null;
+        }
+        /// <summary>
+        /// Returns log level by provided marker or null if marker not available.
+        /// </summary>
+        public LogLevel? GetLogLevelByMarker(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            int specialCharactersCount = -1;
+            int position = text.Length - 1;
+            while(text[position--] == LogLevelMarkerSpecialCharacter)
+            {
+                ++specialCharactersCount;
+            }
+            return specialCharactersCount < 0 ? (LogLevel?)null : (LogLevel?)specialCharactersCount;
         }
 
         /// <summary>

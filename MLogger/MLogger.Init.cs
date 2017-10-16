@@ -37,22 +37,20 @@ namespace MLogger
             }
 
             //Init
-            Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
+            this.LogFilePath = logFilePath;
             this.MessageProcessedAction = messageProcessedAction;
+            Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
+
 
             //Init log file
-            //StreamWriter sw;
-            //sw = new StreamWriter(
-            //    File.Open(Configuration.Current.LogFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read), 
-            //    Configuration.Current.LogFileEncoding);
-            //sw.Flush();
-            //sw.Close();
-
-            StreamReader sr;
-            sr = new StreamReader(
-                File.Open(Configuration.Current.LogFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite),
-                Configuration.Current.LogFileEncoding, true);
-
+            string line;
+            using (var sr = NewStreamReader)
+            {
+                while ((line = sr.ReadLine()) != null)
+                {
+                    //TODO: update positions
+                }
+            }
 
         }
     }

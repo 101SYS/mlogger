@@ -14,6 +14,11 @@ namespace MLogger
         public Action<string, LogLevel> MessageProcessedAction { get; set; }
 
         /// <summary>
+        /// Log file path, specified at instance construction.
+        /// </summary>
+        public string LogFilePath { get; private set; }
+
+        /// <summary>
         /// Log message. If LogLevel not specified - logging message as info.
         /// </summary>
         /// <param name="message">message to log</param>

@@ -14,7 +14,7 @@ namespace MLogger
             get
             {
                 return new StreamReader(
-                File.Open(Configuration.Current.LogFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite),
+                File.Open(this.LogFilePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite),
                 Configuration.Current.LogFileEncoding, true);
             }
         }
@@ -24,7 +24,7 @@ namespace MLogger
             get
             {
                 return new StreamWriter(
-                File.Open(Configuration.Current.LogFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
+                File.Open(this.LogFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read),
                 Configuration.Current.LogFileEncoding);
             }
         }

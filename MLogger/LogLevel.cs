@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MLogger
 {
     /// <summary>
-    /// Log entry level (severity) flags.
+    /// Log entry level (severity) enumerator.
     /// </summary>
     public enum LogLevel : byte
     {
