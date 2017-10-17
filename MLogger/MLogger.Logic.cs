@@ -11,7 +11,7 @@ namespace MLogger
 {
     public partial class MLogger
     {
-        #region Streams
+        #region IO
         /// <summary>
         /// Gets new log file stream reader with encoding. 
         /// If log file does not exists - creates new log file.
@@ -53,6 +53,11 @@ namespace MLogger
                 Configuration.Current.LogFileEncoding);
             }
         }
+
+        protected FileInfo LogFileInfo
+        {
+            get { return new FileInfo(this.LogFilePath); }
+        }
         #endregion
 
         /// <summary>
@@ -85,6 +90,16 @@ namespace MLogger
         protected void UpdatePositions(LogLevel? logLevel, string text)
         {
             int textLength = Configuration.Current.LogFileEncoding.GetByteCount(text);
+            UpdatePositions(logLevel, textLength);
+        }
+
+        /// <summary>
+        /// Updates changed log-level blocks positions, accordingly to saved text log-level
+        /// </summary>
+        /// <param name="logLevel">saved text log-level</param>
+        /// <param name="text">saved text</param>
+        protected void UpdatePositions(LogLevel? logLevel, int textLength)
+        {
             int logLevelIndex = logLevel.HasValue ? (int)logLevel.Value : 0;
             for (int i = LogLevelContexts.Count - 1; i >= logLevelIndex; i--)
             {
@@ -155,11 +170,11 @@ namespace MLogger
                 var llContext = GetLogLevelContext(logLevel);
                 try
                 {
-                    await llContext.PauseToken.Token.WaitWhilePausedAsync(); //waiting for higher level
-                    PauseLowerLogLevels(true, logLevel); //pause lower level
+                    await llContext.PauseToken.Token.WaitWhilePausedAsync(); //waiting for higher levels
+                    PauseLowerLogLevels(true, logLevel); //pause lower levels
                     lock (this) //one save at the time
                     {
-                        SaveLogLevelMessage(llContext, message + llContext.Marker);
+                        InsertLogLevelMessage(llContext, message);
                     }
                 }
                 catch (Exception)
@@ -168,28 +183,78 @@ namespace MLogger
                 }
                 finally
                 {
-                    PauseLowerLogLevels(false, logLevel); //unpause lower level
+                    await llContext.PauseToken.Token.WaitWhilePausedAsync(); //waiting for higher level
+                    PauseLowerLogLevels(false, logLevel); //unpause lower levels
                 }
             }
-            else //direct, time-consistent save
+            else
             {
-                using (var sw = NewAppender)
+                lock (this) //one direct, time-consistent save at the time
                 {
-                    await sw.WriteLineAsync(message);
+                    using (var sw = NewAppender)
+                    {
+                        sw.WriteLine(message);
+                    }
                 }
             }
             MessageProcessedAction?.Invoke(message, logLevel);
         }
 
         /// <summary>
-        /// 
+        /// Saving message at the end of its log-level block. 
+        /// Steps: 
+        /// 1. Increasing file size by message bytes count. 
+        /// 2. Moving all the data from last message in appropriate log-level messages block (opening gap). 
+        /// 3. Inserting new message. 
         /// </summary>
-        /// <param name="llContext"></param>
-        /// <param name="message"></param>
+        /// <param name="llContext">Message LogLevelContext</param>
+        /// <param name="message">Message, including markers</param>
         /// <returns></returns>
-        private void SaveLogLevelMessage(LogLevelContext llContext, string message)
+        private void InsertLogLevelMessage(LogLevelContext llContext, string message)
         {
-            //TODO: Implement
+            message += llContext.Marker + Environment.NewLine;
+            byte[] messageBytes = Configuration.Current.LogFileEncoding.GetBytes(message);
+            long messageLength = messageBytes.LongLength;
+            long fileInitialLength = LogFileInfo.Length;
+            long slidingBlockLenght = fileInitialLength - llContext.Position;
+            int bufferSize = (int)Math.Min(10485760L/*10MB*/, slidingBlockLenght);
+            int readsCount = (int)(slidingBlockLenght / bufferSize);
+            int remainingBytes = (int)(slidingBlockLenght % bufferSize);
+            byte[] bufferRead = new byte[bufferSize];
+            byte[] bufferWrite = new byte[bufferSize];
+
+            using (var sw = NewWriter)
+            {
+                sw.BaseStream.SetLength(LogFileInfo.Length + messageBytes.LongLength);
+                using (var sr = NewReader)
+                {
+                    sr.BaseStream.Seek(llContext.Position, SeekOrigin.Begin);
+                    sw.BaseStream.Seek(llContext.Position + messageLength, SeekOrigin.Begin);
+                    sr.BaseStream.Read(bufferRead, 0, bufferSize);
+                    for (int i = 1; i < readsCount; i++)
+                    {
+                        bufferRead.CopyTo(bufferWrite, 0);
+                        sr.BaseStream.Read(bufferRead, 0, bufferSize);
+                        sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                    }
+                    bufferRead.CopyTo(bufferWrite, 0);
+                    if (remainingBytes > 0)
+                    {
+                        bufferRead = new byte[remainingBytes];
+                        sr.BaseStream.Read(bufferRead, 0, remainingBytes);
+                        sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                        bufferWrite = new byte[remainingBytes];
+                        bufferRead.CopyTo(bufferWrite, 0);
+                        bufferSize = remainingBytes;
+                    }
+                }
+                sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                bufferRead = bufferWrite = null;
+
+                sw.BaseStream.Seek(llContext.Position, SeekOrigin.Begin);
+                sw.Write(messageBytes);
+            }
+            UpdatePositions(llContext.LogLevel, messageBytes.Length);
         }
     }
 }
