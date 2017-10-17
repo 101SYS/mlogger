@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Nito.AsyncEx;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MLogger
@@ -78,17 +80,6 @@ namespace MLogger
             }
         }
 
-        /// <summary>
-        /// Saves message sequentially (appends it to the end of the file)
-        /// </summary>
-        /// <param name="message">message text</param>
-        protected void SaveMessageSequentially(string message)
-        {
-            using (var sw = NewAppender)
-            {
-                sw.WriteLine(message);
-            }
-        }
 
         /// <summary>
         /// Verifies if specified log level enabled.
@@ -124,6 +115,38 @@ namespace MLogger
                 ++specialCharactersCount;
             }
             return specialCharactersCount < 0 ? (LogLevel?)null : (LogLevel?)specialCharactersCount;
+        }
+
+        /// <summary>
+        /// Process message asynchronously. 
+        /// Save message sequentially (append message) or queue it for forwarder asynchronous processing.
+        /// </summary>
+        /// <param name="logLevel">message log level</param>
+        /// <param name="message">message</param>
+        protected async void ProcessMessageAsync(LogLevel logLevel, string message)
+        {
+            if (Configuration.Current.OrderEntriesByLogLevel)
+            {
+                MessagesQueues[logLevel].Add(message + GetLogLevelMarker(logLevel)); //queue message
+                await ProcessMessagesQueueAsync();
+            }
+            else
+            {
+                using (var sw = NewAppender)
+                {
+                    await sw.WriteLineAsync(message);
+                }
+                MessageProcessedAction?.Invoke(message, logLevel);
+            }
+        }
+
+
+        //private volatile bool QueuesProcessorRunning = false;
+        private async Task ProcessMessagesQueueAsync()
+        {
+            //var pts = new PauseTokenSource();
+            //pts.IsPaused = true;
+            //await pause.WaitWhilePausedAsync();
         }
     }
 }

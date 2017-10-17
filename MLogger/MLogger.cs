@@ -68,15 +68,7 @@ namespace MLogger
                     .Replace("$(Message)", message.ToString())
                     .Replace("$(AdditionalInfo)", info);
 
-                if (Configuration.Current.OrderEntriesByLogLevel)
-                {
-                    MessagesQueues[logLevel].Add(msg + GetLogLevelMarker(logLevel));
-                }
-                else
-                {
-                    SaveMessageSequentially(msg);
-                    MessageProcessedAction?.Invoke(msg, logLevel);
-                }
+                ProcessMessageAsync(logLevel, msg);
             }
 
             return this;

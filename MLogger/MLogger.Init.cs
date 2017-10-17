@@ -56,11 +56,11 @@ namespace MLogger
 
 
                 //Initialize log file and set log-level blocks positions
-                string line;
                 using (var sr = NewReader)
                 {
-                    while ((line = sr.ReadLine()) != null)
+                    while (!sr.EndOfStream)
                     {
+                        string line = sr.ReadLine() ?? string.Empty;
                         UpdatePositions(line.TrimEnd(NewLineCharacters));
                     }
                 }
