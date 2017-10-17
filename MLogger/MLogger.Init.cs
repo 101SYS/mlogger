@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Nito.AsyncEx;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -45,15 +46,16 @@ namespace MLogger
 
             if (Configuration.Current.OrderEntriesByLogLevel)
             {
-                LogLevelMarkers = Enum.GetValues(typeof(LogLevel)).Cast<byte>().OrderBy(value => value)
-                    .Select(value => new string(Enumerable.Repeat(LogLevelMarkerSpecialCharacter, value + 1).ToArray()))
-                    .ToList().AsReadOnly();
-                Positions = Enumerable.Repeat(0L, LogLevelMarkers.Count).ToList();
-                byte logLevel = 0;
-                MessagesQueues = new ConcurrentDictionary<LogLevel, ConcurrentBag<string>>(
-                    Enumerable.Repeat(
-                        new KeyValuePair<LogLevel, ConcurrentBag<string>>((LogLevel)logLevel++, new ConcurrentBag<string>()), Positions.Count).ToArray());
-
+                this.LogLevelContexts = Enum.GetValues(typeof(LogLevel)).Cast<LogLevel>()
+                    .OrderBy(ll => (byte)ll)
+                    .Select(ll =>
+                        new LogLevelContext()
+                        {
+                            LogLevel = ll,
+                            Position = 0L,
+                            Marker = new string(Enumerable.Repeat(LogLevelMarkerSpecialCharacter, ((int)ll) + 1).ToArray()),
+                            PauseToken = new PauseTokenSource()
+                        }).ToList().AsReadOnly();
 
                 //Initialize log file and set log-level blocks positions
                 using (var sr = NewReader)

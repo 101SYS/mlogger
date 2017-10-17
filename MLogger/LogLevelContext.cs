@@ -16,27 +16,22 @@ namespace MLogger
         /// <summary>
         /// Corresponding log level.
         /// </summary>
-        LogLevel LogLevel { get; set; }
+        public LogLevel LogLevel { get; set; }
 
         /// <summary>
         /// Log level block position in log file (end of the block).
         /// </summary>
-        long Position { get; set; }
+        public long Position { get; set; }
 
         /// <summary>
         /// Log level marker (used to mark messages belongingness in log file).
         /// </summary>
-        string Marker { get; set; }
-
-        /// <summary>
-        /// Contains messages to process.
-        /// </summary>
-        //ConcurrentBag<string> MessagesQueue { get; set; }
+        public string Marker { get; set; }
 
         /// <summary>
         /// Pause task token
         /// </summary>
-        PauseTokenSource PauseToken { get; set; }
+        public PauseTokenSource PauseToken { get; set; }
 
     }
 }

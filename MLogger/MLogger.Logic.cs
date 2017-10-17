@@ -11,6 +11,7 @@ namespace MLogger
 {
     public partial class MLogger
     {
+        #region Streams
         /// <summary>
         /// Gets new log file stream reader with encoding. 
         /// If log file does not exists - creates new log file.
@@ -52,6 +53,17 @@ namespace MLogger
                 Configuration.Current.LogFileEncoding);
             }
         }
+        #endregion
+
+        /// <summary>
+        /// Returns LogLevelContext by provided LogLevel
+        /// </summary>
+        /// <param name="logLevel">log level</param>
+        /// <returns>LogLevelContext by provided LogLevel</returns>
+        private LogLevelContext GetLogLevelContext(LogLevel logLevel)
+        {
+            return this.LogLevelContexts[(int)logLevel];
+        }
 
         /// <summary>
         /// Updates changed log-level blocks positions, accordingly to saved text
@@ -74,12 +86,24 @@ namespace MLogger
         {
             int textLength = Configuration.Current.LogFileEncoding.GetByteCount(text);
             int logLevelIndex = logLevel.HasValue ? (int)logLevel.Value : 0;
-            for (int i = Positions.Count; i >= logLevelIndex; i--)
+            for (int i = LogLevelContexts.Count - 1; i >= logLevelIndex; i--)
             {
-                Positions[i] += textLength;
+                LogLevelContexts[i].Position += textLength;
             }
         }
 
+        /// <summary>
+        /// Pause or unpause lower log levels (lower severities)
+        /// </summary>
+        /// <param name="pause">true - pause, false - unpause</param>
+        private void PauseLowerLogLevels(bool pause, LogLevel logLevel)
+        {
+            int logLevelIndex = (int)logLevel;
+            for (int i = LogLevelContexts.Count - 1; i > logLevelIndex; i--)
+            {
+                LogLevelContexts[i].PauseToken.IsPaused = pause;
+            }
+        }
 
         /// <summary>
         /// Verifies if specified log level enabled.
@@ -91,15 +115,14 @@ namespace MLogger
             return Configuration.Current.LogLevel >= logLevel;
         }
 
-        public const char LogLevelMarkerSpecialCharacter = (char)0;
-        private IReadOnlyList<string> LogLevelMarkers { get; set; }
+
         /// <summary>
         /// Returns log level marker by provided log level. 
         /// If OrderEntriesByLogLevel is true - should be added to message to specify its log level.
         /// </summary>
         public string GetLogLevelMarker(LogLevel logLevel)
         {
-            return Configuration.Current.OrderEntriesByLogLevel ? LogLevelMarkers[((int)logLevel)] : null;
+            return Configuration.Current.OrderEntriesByLogLevel ? GetLogLevelContext(logLevel).Marker : null;
         }
 
         /// <summary>
@@ -117,9 +140,11 @@ namespace MLogger
             return specialCharactersCount < 0 ? (LogLevel?)null : (LogLevel?)specialCharactersCount;
         }
 
+
+
         /// <summary>
         /// Process message asynchronously. 
-        /// Save message sequentially (append message) or queue it for forwarder asynchronous processing.
+        /// Save message sequentially (append message) or passes it for forwarder asynchronous processing.
         /// </summary>
         /// <param name="logLevel">message log level</param>
         /// <param name="message">message</param>
@@ -127,26 +152,44 @@ namespace MLogger
         {
             if (Configuration.Current.OrderEntriesByLogLevel)
             {
-                MessagesQueues[logLevel].Add(message + GetLogLevelMarker(logLevel)); //queue message
-                await ProcessMessagesQueueAsync();
+                var llContext = GetLogLevelContext(logLevel);
+                try
+                {
+                    await llContext.PauseToken.Token.WaitWhilePausedAsync(); //waiting for higher level
+                    PauseLowerLogLevels(true, logLevel); //pause lower level
+                    lock (this) //one save at the time
+                    {
+                        SaveLogLevelMessage(llContext, message + llContext.Marker);
+                    }
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+                finally
+                {
+                    PauseLowerLogLevels(false, logLevel); //unpause lower level
+                }
             }
-            else
+            else //direct, time-consistent save
             {
                 using (var sw = NewAppender)
                 {
                     await sw.WriteLineAsync(message);
                 }
-                MessageProcessedAction?.Invoke(message, logLevel);
             }
+            MessageProcessedAction?.Invoke(message, logLevel);
         }
 
-
-        //private volatile bool QueuesProcessorRunning = false;
-        private async Task ProcessMessagesQueueAsync()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="llContext"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private void SaveLogLevelMessage(LogLevelContext llContext, string message)
         {
-            //var pts = new PauseTokenSource();
-            //pts.IsPaused = true;
-            //await pause.WaitWhilePausedAsync();
+            //TODO: Implement
         }
     }
 }

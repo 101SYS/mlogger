@@ -20,23 +20,20 @@ namespace MLogger
         public string LogFilePath { get; private set; }
 
         /// <summary>
-        /// Holds positions of end of each one of the log-level blocks. 
-        /// Index in list is LogLevel, value is LogLevel block end position. 
-        /// Initiated at class construction.
+        /// list of log level contexts. 
+        /// Item index correlates to LogLevel.
         /// </summary>
-        protected readonly List<long> Positions;
+        private IReadOnlyList<LogLevelContext> LogLevelContexts { get; set; }
 
         /// <summary>
-        /// Holds messages to process. 
-        /// Key in dictionary is LogLevel, value is messages queue. 
-        /// Initiated at class construction.
-        /// </summary>
-        protected readonly ConcurrentDictionary<LogLevel, ConcurrentBag<string>> MessagesQueues;
-
-        /// <summary>
-        /// New line characters
+        /// New line characters reversed (to trim)
         /// </summary>
         private static readonly char[] NewLineCharacters = Environment.NewLine.ToCharArray().Reverse().ToArray();
+
+        /// <summary>
+        /// Log level marker character
+        /// </summary>
+        public const char LogLevelMarkerSpecialCharacter = (char)0;
 
         /// <summary>
         /// Log message. If LogLevel not specified - logging message as info.

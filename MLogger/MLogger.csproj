@@ -67,7 +67,7 @@
     <Compile Include="LogLevelContext.cs" />
     <Compile Include="MLogger.cs" />
     <Compile Include="MLogger.Init.cs" />
-    <Compile Include="MLogger.IO.cs" />
+    <Compile Include="MLogger.Logic.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
