@@ -47,21 +47,65 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationTests.cs" />
+    <Compile Include="Connected Services\LoggerSvc\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="LoggerSvcTests.cs" />
     <Compile Include="MLoggerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Connected Services\LoggerSvc\Logger.wsdl" />
+    <None Include="Connected Services\LoggerSvc\Logger.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\LoggerSvc\Logger1.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Connected Services\LoggerSvc\Logger2.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MLoggerWeb\MLoggerWeb.csproj">
+      <Project>{92FC4742-D377-4837-8919-6CDA96698ED1}</Project>
+      <Name>MLoggerWeb</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MLogger\MLogger.csproj">
       <Project>{b82e4c76-9a12-4d1b-abc2-37ac5ac2179d}</Project>
       <Name>MLogger</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Connected Services\LoggerSvc\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Connected Services\LoggerSvc\Logger.disco" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Connected Services\LoggerSvc\configuration91.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Connected Services\LoggerSvc\configuration.svcinfo" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Connected Services\LoggerSvc\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

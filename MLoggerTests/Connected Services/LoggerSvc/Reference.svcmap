@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="baed8fe8-1db8-4167-bd5e-70bb312eb457" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+  <ClientOptions>
+    <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
+    <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
+    <EnableDataBinding>true</EnableDataBinding>
+    <ExcludedTypes />
+    <ImportXmlTypes>false</ImportXmlTypes>
+    <GenerateInternalTypes>false</GenerateInternalTypes>
+    <GenerateMessageContracts>false</GenerateMessageContracts>
+    <NamespaceMappings />
+    <CollectionMappings />
+    <GenerateSerializableTypes>true</GenerateSerializableTypes>
+    <Serializer>Auto</Serializer>
+    <UseSerializerForFaults>true</UseSerializerForFaults>
+    <ReferenceAllAssemblies>true</ReferenceAllAssemblies>
+    <ReferencedAssemblies />
+    <ReferencedDataContractTypes />
+    <ServiceContractMappings />
+  </ClientOptions>
+  <MetadataSources>
+    <MetadataSource Address="http://localhost:55762/Logger.svc" Protocol="http" SourceId="1" />
+  </MetadataSources>
+  <Metadata>
+    <MetadataFile FileName="Logger.xsd" MetadataType="Schema" ID="66c9d470-3439-4936-8e95-6109a55e640b" SourceId="1" SourceUrl="http://localhost:55762/Logger.svc?xsd=xsd1" />
+    <MetadataFile FileName="Logger.wsdl" MetadataType="Wsdl" ID="f4f449e0-e796-4e04-95ea-60cfc7a77364" SourceId="1" SourceUrl="http://localhost:55762/Logger.svc?wsdl" />
+    <MetadataFile FileName="Logger1.xsd" MetadataType="Schema" ID="88676c8a-9c5c-431a-85e4-93932a42d9e8" SourceId="1" SourceUrl="http://localhost:55762/Logger.svc?xsd=xsd0" />
+    <MetadataFile FileName="Logger2.xsd" MetadataType="Schema" ID="8bd80964-375f-4aeb-98cf-39e9eca2368e" SourceId="1" SourceUrl="http://localhost:55762/Logger.svc?xsd=xsd2" />
+    <MetadataFile FileName="Logger.disco" MetadataType="Disco" ID="ff0c4b8d-e320-4cb5-8934-a6418db97b85" SourceId="1" SourceUrl="http://localhost:55762/Logger.svc?disco" />
+  </Metadata>
+  <Extensions>
+    <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
+    <ExtensionFile FileName="configuration.svcinfo" Name="configuration.svcinfo" />
+  </Extensions>
+</ReferenceGroup>

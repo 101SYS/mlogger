@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="MLogger.Web.Logger" CodeBehind="Logger.svc.cs" %>

@@ -63,7 +63,8 @@ namespace MLogger
                     .Replace("$(NewLine)", Environment.NewLine)
                     .Replace("$(LogLevel)", logLevel.ToString())
                     .Replace("$(Message)", message.ToString())
-                    .Replace("$(AdditionalInfo)", info);
+                    .Replace("$(AdditionalInfo)", info)
+                    .Trim();
 
                 ProcessMessageAsync(logLevel, msg);
             }

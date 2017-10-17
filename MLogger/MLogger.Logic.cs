@@ -214,45 +214,48 @@ namespace MLogger
         {
             message += llContext.Marker + Environment.NewLine;
             byte[] messageBytes = Configuration.Current.LogFileEncoding.GetBytes(message);
-            long messageLength = messageBytes.LongLength;
             long fileInitialLength = LogFileInfo.Length;
             long slidingBlockLenght = fileInitialLength - llContext.Position;
-            int bufferSize = (int)Math.Min(10485760L/*10MB*/, slidingBlockLenght);
-            int readsCount = (int)(slidingBlockLenght / bufferSize);
-            int remainingBytes = (int)(slidingBlockLenght % bufferSize);
-            byte[] bufferRead = new byte[bufferSize];
-            byte[] bufferWrite = new byte[bufferSize];
 
             using (var sw = NewWriter)
             {
                 sw.BaseStream.SetLength(LogFileInfo.Length + messageBytes.LongLength);
-                using (var sr = NewReader)
+
+                if (slidingBlockLenght > 0L)
                 {
-                    sr.BaseStream.Seek(llContext.Position, SeekOrigin.Begin);
-                    sw.BaseStream.Seek(llContext.Position + messageLength, SeekOrigin.Begin);
-                    sr.BaseStream.Read(bufferRead, 0, bufferSize);
-                    for (int i = 1; i < readsCount; i++)
+                    int bufferSize = (int)Math.Min(10485760L/*10MB*/, slidingBlockLenght);
+                    int readsCount = (int)(slidingBlockLenght / bufferSize);
+                    int remainingBytes = (int)(slidingBlockLenght % bufferSize);
+                    byte[] bufferRead = new byte[bufferSize];
+                    byte[] bufferWrite = new byte[bufferSize];
+                    using (var sr = NewReader)
                     {
-                        bufferRead.CopyTo(bufferWrite, 0);
+                        sr.BaseStream.Seek(llContext.Position, SeekOrigin.Begin);
+                        sw.BaseStream.Seek(llContext.Position + messageBytes.LongLength, SeekOrigin.Begin);
                         sr.BaseStream.Read(bufferRead, 0, bufferSize);
-                        sw.BaseStream.Write(bufferWrite, 0, bufferSize);
-                    }
-                    bufferRead.CopyTo(bufferWrite, 0);
-                    if (remainingBytes > 0)
-                    {
-                        bufferRead = new byte[remainingBytes];
-                        sr.BaseStream.Read(bufferRead, 0, remainingBytes);
-                        sw.BaseStream.Write(bufferWrite, 0, bufferSize);
-                        bufferWrite = new byte[remainingBytes];
+                        for (int i = 1; i < readsCount; i++)
+                        {
+                            bufferRead.CopyTo(bufferWrite, 0);
+                            sr.BaseStream.Read(bufferRead, 0, bufferSize);
+                            sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                        }
                         bufferRead.CopyTo(bufferWrite, 0);
-                        bufferSize = remainingBytes;
+                        if (remainingBytes > 0)
+                        {
+                            bufferRead = new byte[remainingBytes];
+                            sr.BaseStream.Read(bufferRead, 0, remainingBytes);
+                            sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                            bufferWrite = new byte[remainingBytes];
+                            bufferRead.CopyTo(bufferWrite, 0);
+                            bufferSize = remainingBytes;
+                        }
                     }
+                    sw.BaseStream.Write(bufferWrite, 0, bufferSize);
+                    bufferRead = bufferWrite = null;
                 }
-                sw.BaseStream.Write(bufferWrite, 0, bufferSize);
-                bufferRead = bufferWrite = null;
 
                 sw.BaseStream.Seek(llContext.Position, SeekOrigin.Begin);
-                sw.Write(messageBytes);
+                sw.BaseStream.Write(messageBytes, 0, messageBytes.Length);
             }
             UpdatePositions(llContext.LogLevel, messageBytes.Length);
         }

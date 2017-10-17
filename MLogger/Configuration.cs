@@ -18,7 +18,7 @@ namespace MLogger
 
         static Configuration()
         {
-            Current = new Configuration();
+            Current = (Configuration)ConfigurationManager.GetSection("mLogger");//.OpenExeConfiguration(ConfigurationUserLevel.None).Sections["mLogger"];
         }
 
         public readonly static Configuration Current;
