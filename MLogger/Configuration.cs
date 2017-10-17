@@ -10,15 +10,10 @@ namespace MLogger
 {
     public class Configuration : ConfigurationSection
     {
-        public Configuration()
-        {
-            LogFilePath = LogFilePath;
-            LogFileEncodingName = LogFileEncodingName;
-        }
-
         static Configuration()
         {
-            Current = (Configuration)ConfigurationManager.GetSection("mLogger");//.OpenExeConfiguration(ConfigurationUserLevel.None).Sections["mLogger"];
+            Current = (Configuration)ConfigurationManager.GetSection("mLogger");
+            Current.LogFileEncoding = Encoding.GetEncoding(Current.LogFileEncodingName, Encoding.UTF8.EncoderFallback, Encoding.UTF8.DecoderFallback);
         }
 
         public readonly static Configuration Current;
@@ -26,10 +21,9 @@ namespace MLogger
 
         /// <summary>
         /// Log file full path. 
-        /// Available placeholders: "$(TargetDir)" - replaced with current executing location. 
-        /// Default: "$(TargetDir)mlog.log".
+        /// This setting is required in corresponding application configuration.
         /// </summary>
-        [ConfigurationProperty("logFilePath", DefaultValue = "$(TargetDir)mlog.log", IsRequired = true)]
+        [ConfigurationProperty("logFilePath", IsRequired = true)]
         public string LogFilePath
         {
             get { return (string)base["logFilePath"]; }
