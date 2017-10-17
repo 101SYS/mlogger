@@ -11,7 +11,7 @@ namespace MLogger
     /// </summary>
     public enum LogLevel : byte
     {
-        Critical,
+        Critical = 0,
         Error,
         Warn,
         Info,

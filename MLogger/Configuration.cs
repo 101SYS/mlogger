@@ -14,9 +14,6 @@ namespace MLogger
         {
             LogFilePath = LogFilePath;
             LogFileEncodingName = LogFileEncodingName;
-            LogLevelMarkers = Enum.GetValues(typeof(LogLevel)).Cast<byte>().OrderBy(value => value)
-                .Select(value => new string(Enumerable.Repeat(LogLevelMarkerSpecialCharacter, value + 1).ToArray()))
-                .ToList().AsReadOnly();
         }
 
         static Configuration()
@@ -65,7 +62,7 @@ namespace MLogger
         /// Defines, if log entries should be sorted (grouped) by log level (severity) or not. 
         /// Default: false.
         /// </summary>
-        [ConfigurationProperty("orderEntriesByLogLevel", DefaultValue = true, IsRequired = false)]
+        [ConfigurationProperty("orderEntriesByLogLevel", DefaultValue = false, IsRequired = false)]
         public bool OrderEntriesByLogLevel
         {
             get { return (bool)base["orderEntriesByLogLevel"]; }
@@ -79,14 +76,26 @@ namespace MLogger
         /// "$(Message)" - replaced with message body, 
         /// "$(AdditionalInfo)" - replaced with additional information, 
         /// "$(NewLine)" - replaced with new line, 
-        /// DateTime format string - replaced with server current date-time. 
-        /// Default: "[dd/MM/yyyy HH:mm:ss.fff|$(LogLevel)] $(Message) $(AdditionalInfo)".
+        /// "$(TimeStamp)" - replaced with server current date-time, according to MessageTimeStampFormat. 
+        /// Default: "[$(TimeStamp)|$(LogLevel)] $(Message) $(AdditionalInfo)".
         /// </summary>
-        [ConfigurationProperty("logEntryFormat", DefaultValue = "[dd/MM/yyyy HH:mm:ss.fff|$(LogLevel)] $(Message) $(AdditionalInfo)", IsRequired = true)]
-        public string LogEntryFormat
+        [ConfigurationProperty("messageFormat", DefaultValue = "[$(TimeStamp)|$(LogLevel)] $(Message) $(AdditionalInfo)", IsRequired = false)]
+        public string MessageFormat
         {
-            get { return (string)base["logEntryFormat"]; }
-            protected set { base["logEntryFormat"] = value; }
+            get { return (string)base["messageFormat"]; }
+            protected set { base["messageFormat"] = value; }
+        }
+
+        /// <summary>
+        /// Log message time stamp format. 
+        /// DateTime format string - replaced with server current date-time. 
+        /// Default: "dd/MM/yyyy HH:mm:ss.fff".
+        /// </summary>
+        [ConfigurationProperty("messageTimeStampFormat", DefaultValue = "dd/MM/yyyy HH:mm:ss.fff", IsRequired = false)]
+        public string MessageTimeStampFormat
+        {
+            get { return (string)base["messageTimeStampFormat"]; }
+            protected set { base["messageTimeStampFormat"] = value; }
         }
 
 
@@ -99,41 +108,6 @@ namespace MLogger
         {
             get { return (LogLevel)base["logLevel"]; }
             protected set { base["logLevel"] = value; }
-        }
-
-        /// <summary>
-        /// Verifies if specified log level enabled.
-        /// </summary>
-        /// <param name="logLevel">Log level to verify</param>
-        /// <returns>true or false</returns>
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return this.LogLevel >= logLevel;
-        }
-
-        public const char LogLevelMarkerSpecialCharacter = (char)0;
-        private IReadOnlyList<string> LogLevelMarkers { get; set; }
-        /// <summary>
-        /// Returns log level marker by provided log level. 
-        /// If OrderEntriesByLogLevel is true - should be added to message to specify its log level.
-        /// </summary>
-        public string GetLogLevelMarker(LogLevel logLevel)
-        {
-            return OrderEntriesByLogLevel ? LogLevelMarkers[((int)logLevel)] : null;
-        }
-        /// <summary>
-        /// Returns log level by provided marker or null if marker not available.
-        /// </summary>
-        public LogLevel? GetLogLevelByMarker(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return null;
-            int specialCharactersCount = -1;
-            int position = text.Length - 1;
-            while(text[position--] == LogLevelMarkerSpecialCharacter)
-            {
-                ++specialCharactersCount;
-            }
-            return specialCharactersCount < 0 ? (LogLevel?)null : (LogLevel?)specialCharactersCount;
         }
 
         /// <summary>
@@ -156,6 +130,6 @@ namespace MLogger
         /// Default: UTF8.
         /// </summary>
         public Encoding LogFileEncoding { get; protected set; }
-        
+
     }
 }

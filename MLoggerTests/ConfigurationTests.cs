@@ -14,55 +14,17 @@ namespace MLogger.Tests
     public class ConfigurationTests
     {
         [TestMethod]
-        public void GeneralConfigurationTests()
+        public void ConfigGeneralTests()
         {
             Console.WriteLine(Path.GetDirectoryName(Configuration.Current.LogFilePath));
             StringAssert.Contains(Configuration.Current.LogFilePath, @"\mlog.log");
             Assert.IsFalse(Configuration.Current.LogFileMaxBytes.HasValue);
             Assert.IsFalse(Configuration.Current.IsLogFileMaxSizeLimited);
-            Assert.IsTrue(Configuration.Current.OrderEntriesByLogLevel);
-            Assert.IsNotNull(Configuration.Current.LogEntryFormat);
+            Assert.IsNotNull(Configuration.Current.MessageFormat);
+            Assert.IsNotNull(Configuration.Current.MessageTimeStampFormat);
             Console.WriteLine("Configuration.Current.LogEncoding.EncodingName: " + Configuration.Current.LogFileEncoding.EncodingName);
             Assert.AreEqual<string>(Configuration.Current.LogFileEncoding.EncodingName, Encoding.UTF8.EncodingName);
         }
 
-        [TestMethod]
-        public void IsEnabledTest()
-        {
-            Console.WriteLine("Configuration.Current.LogLevel: " + Configuration.Current.LogLevel);
-            Assert.IsTrue(
-                Configuration.Current.IsEnabled(LogLevel.Critical)
-                && Configuration.Current.IsEnabled(LogLevel.Error)
-                && Configuration.Current.IsEnabled(LogLevel.Warn)
-                && Configuration.Current.IsEnabled(LogLevel.Info)
-                && Configuration.Current.IsEnabled(LogLevel.Debug));
-
-            //Configuration.Current.LogLevel = LogLevel.Error;
-            //Assert.IsTrue(Configuration.Current.IsEnabled(LogLevel.Critical)
-            //    && Configuration.Current.IsEnabled(LogLevel.Error));
-            //Assert.IsFalse(Configuration.Current.IsEnabled(LogLevel.Warn)
-            //    && Configuration.Current.IsEnabled(LogLevel.Info)
-            //    && Configuration.Current.IsEnabled(LogLevel.Debug));
-        }
-
-        [TestMethod()]
-        public void GetLogLevelMarkerTest()
-        {
-            Assert.AreEqual<string>(Configuration.Current.GetLogLevelMarker(LogLevel.Critical), Configuration.LogLevelMarkerSpecialCharacter.ToString());
-            Assert.AreEqual<string>(Configuration.Current.GetLogLevelMarker(LogLevel.Error),
-                new string(new char[] { Configuration.LogLevelMarkerSpecialCharacter, Configuration.LogLevelMarkerSpecialCharacter }));
-        }
-
-        [TestMethod()]
-        public void GetLogLevelByMarkerTest()
-        {
-            LogLevel? ll = Configuration.Current.GetLogLevelByMarker("some text" + Configuration.LogLevelMarkerSpecialCharacter);
-            Assert.IsNotNull(ll);
-            Assert.AreEqual<LogLevel>(LogLevel.Critical, ll.Value);
-
-            ll = Configuration.Current.GetLogLevelByMarker("some text" + Configuration.LogLevelMarkerSpecialCharacter + Configuration.LogLevelMarkerSpecialCharacter);
-            Assert.IsNotNull(ll);
-            Assert.AreEqual<LogLevel>(LogLevel.Error, ll.Value);
-        }
     }
 }

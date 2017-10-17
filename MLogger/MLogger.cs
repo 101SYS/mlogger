@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,25 @@ namespace MLogger
         public string LogFilePath { get; private set; }
 
         /// <summary>
+        /// Holds positions of end of each one of the log-level blocks. 
+        /// Index in list is LogLevel, value is LogLevel block end position. 
+        /// Initiated at class construction.
+        /// </summary>
+        protected readonly List<long> Positions;
+
+        /// <summary>
+        /// Holds messages to process. 
+        /// Key in dictionary is LogLevel, value is messages queue. 
+        /// Initiated at class construction.
+        /// </summary>
+        protected readonly ConcurrentDictionary<LogLevel, ConcurrentBag<string>> MessagesQueues;
+
+        /// <summary>
+        /// New line characters
+        /// </summary>
+        private static readonly char[] NewLineCharacters = Environment.NewLine.ToCharArray().Reverse().ToArray();
+
+        /// <summary>
         /// Log message. If LogLevel not specified - logging message as info.
         /// </summary>
         /// <param name="message">message to log</param>
@@ -26,11 +46,7 @@ namespace MLogger
         /// <returns>MLogger</returns>
         public MLogger Log(string message, LogLevel logLevel = LogLevel.Info)
         {
-            if (Configuration.Current.IsEnabled(logLevel))
-            {
-                //TODO: Implement
-            }
-            return this;
+            return Log(logLevel, message);
         }
 
         /// <summary>
@@ -40,16 +56,30 @@ namespace MLogger
         /// <param name="message">message to log</param>
         /// <param name="additionalInfo">optional additional information</param>
         /// <returns>MLogger</returns>
-        private MLogger Log(LogLevel logLevel, object message, params object[] additionalInfo)
+        protected MLogger Log(LogLevel logLevel, object message, params object[] additionalInfo)
         {
-            string info = (additionalInfo != null && additionalInfo.Length > 0) ? string.Join<object>(", ", additionalInfo) : string.Empty;
-            string msg = DateTime.Now.ToString(Configuration.Current.LogEntryFormat)
-                .Replace("$(NewLine)", Environment.NewLine)
-                .Replace("$(LogLevel)", logLevel.ToString())
-                .Replace("$(Message)", message.ToString())
-                .Replace("$(AdditionalInfo)", info);
+            if (IsLogLevelEnabled(logLevel))
+            {
+                string info = (additionalInfo != null && additionalInfo.Length > 0) ? string.Join<object>(", ", additionalInfo) : string.Empty;
+                string msg = Configuration.Current.MessageFormat
+                    .Replace("$(TimeStamp)", DateTime.Now.ToString(Configuration.Current.MessageTimeStampFormat))
+                    .Replace("$(NewLine)", Environment.NewLine)
+                    .Replace("$(LogLevel)", logLevel.ToString())
+                    .Replace("$(Message)", message.ToString())
+                    .Replace("$(AdditionalInfo)", info);
 
-            return Log(msg, logLevel);
+                if (Configuration.Current.OrderEntriesByLogLevel)
+                {
+                    MessagesQueues[logLevel].Add(msg + GetLogLevelMarker(logLevel));
+                }
+                else
+                {
+                    SaveMessageSequentially(msg);
+                    MessageProcessedAction?.Invoke(msg, logLevel);
+                }
+            }
+
+            return this;
         }
 
         /// <summary>
